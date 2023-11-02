@@ -27,8 +27,9 @@ export function Modal(props: ModalProps) {
         <DialogHeader>
           <DialogTitle>Sign in</DialogTitle>
           <DialogDescription>
-            You're accessing a restricted are of Yungsten Tech, but don't worry,
-            we just need to sign you in!
+            {
+              "You're accessing a restricted are of Yungsten Tech, but don't worry, we just need to sign you in!"
+            }
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
