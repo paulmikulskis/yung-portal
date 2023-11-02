@@ -54,9 +54,11 @@ function UppyDash({
       "Upload complete! We’ve uploaded these files:",
       JSON.stringify(result.successful, null, 2)
     );
-    const uploadedFiles = result.successful.map((file) => file.name);
+
+    const uploadedFiles = result.successful.map((file) => (file as any).name);
     setNewlyUploaded(uploadedFiles);
   });
+
   useEffect(() => {
     const poweredByUppy = document.querySelector(
       ".uppy-Dashboard-poweredByUppy"
