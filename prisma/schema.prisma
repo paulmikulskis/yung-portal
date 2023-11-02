@@ -1,0 +1,192 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// The top-level AppUser
+model AppUser {
+    id                    String         @id @default(uuid())
+    username              String?        @unique @default(cuid())
+    // every account will have a Stripe Account ID for their "Connected Account" (to ours) for facilitating billing/banking
+    stripeAcctId          String?
+    // all accounts that perform legal action need to be KYC'd 
+    kycStatus             KycStatus      @default(NOT_STARTED)
+    createdAt             DateTime       @default(now())
+    updatedAt             DateTime       @updatedAt
+    firstName             String?
+    lastName              String?
+    acctType              AcctType       @default(Basic)
+    businessName          String?
+    // email on file with the Authentication Provider, also serves as contact email
+    email                 String         @unique
+    // platform credits
+    credits               Int            @default(0)
+    bio                   String?
+    // user settings will be an ever-changing JSON object, we use Zod to maintain structure
+    settings              Json           @default("{}")
+    // account state will be an ever-changing JSON object, we use Zod to maintain structure
+    // this will be used to track things like account onboarding
+    accountState          Json           @default("{}")
+    // artwork for their profile picture, either by file or preferably URI, such as from a CDN
+    profilePicture        File?          @relation(fields: [profilePicFileId], references: [id], onDelete: Cascade)
+    profilePicFileId      String?
+    profilePicURI         String?
+    SentMessages          Message[]      @relation("SentMessages")
+    ReceivedMessages      Message[]      @relation("ReceivedMessages")
+    StartedConversations  Conversation[] @relation("Starter")
+    ReceivedConversations Conversation[] @relation("Receiver")
+    Notification          Notification[]
+}
+
+model SuperEmails {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    email     String   @unique
+}
+
+model AllowedSignups {
+    id            String         @id @default(uuid())
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @default(now()) @updatedAt
+    email         String         @unique
+    firstName     String?
+    lastName      String?
+    businessName  String?
+    accountState  Json           @default("{}")
+    accountType   AcctType       @default(Basic)
+    claimed       Boolean        @default(false)
+    notifications Notification[]
+}
+
+model Notification {
+    id               String                 @id @default(uuid())
+    createdAt        DateTime               @default(now())
+    updatedAt        DateTime               @updatedAt
+    // the user who received the notification
+    receiver         AppUser?               @relation(fields: [receiverId], references: [id], onDelete: Cascade)
+    receiverId       String?
+    // the notification title
+    title            String
+    // the notification status
+    status           NotificationStatus     @default(UNREAD)
+    // the notification type
+    type             NotificationType       @default(SYSTEM)
+    // the notification action
+    action           NotificationActionType @default(ACKNOWLEDGE)
+    actionData       Json?
+    // the notification body
+    body             String
+    // the notification action data
+    data             String?
+    AllowedSignups   AllowedSignups?        @relation(fields: [allowedSignupsId], references: [id])
+    allowedSignupsId String?
+
+    @@index([receiverId])
+}
+
+enum NotificationActionType {
+    STRIPE_CONNECT_ONBOARD
+    STRIPE_CONNECT_ONBOARD_ERROR
+    STRIPE_CONNECT_ONBOARD_SUCCESS
+    STRIPE_CONNECT_ONBOARD_INFO
+
+    DASHBOARD_ONBOARD
+    DRIVE_ONBOARD
+    DRIVE_INFO
+
+    ACKNOWLEDGE
+}
+
+enum NotificationStatus {
+    READ
+    UNREAD
+    CLOSED
+}
+
+enum NotificationType {
+    SUPPORT
+    SYSTEM
+    USER
+    OTHER
+}
+
+model File {
+    id        String    @id @unique @default(uuid())
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    name      String
+    url       String?
+    blob      Bytes?
+    type      String?
+    size      Int
+    AppUser   AppUser[]
+    Message   Message?  @relation(fields: [messageId], references: [id])
+    messageId String?
+}
+
+model Conversation {
+    id         String    @id @default(uuid())
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+    // the user who started the conversation
+    starter    AppUser   @relation(name: "Starter", fields: [starterId], references: [id], onDelete: Cascade)
+    starterId  String
+    // the user who received the conversation
+    receiver   AppUser   @relation(name: "Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+    receiverId String
+    // the messages in the conversation
+    messages   Message[]
+}
+
+model Message {
+    id             String        @id @default(uuid())
+    createdAt      DateTime      @default(now())
+    updatedAt      DateTime      @updatedAt
+    // the user who sent the message
+    sender         AppUser       @relation(name: "SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+    senderId       String
+    // the user who received the message
+    receiver       AppUser       @relation(name: "ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+    receiverId     String
+    // the message body
+    body           String
+    // the message subject
+    subject        String
+    // the message status
+    status         String
+    Conversation   Conversation? @relation(fields: [conversationId], references: [id])
+    conversationId String?
+    attachments    File[]
+}
+
+// mailing address
+model Address {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    street    String
+    city      String
+    state     String
+    zip       String
+    country   String
+}
+
+enum AcctType {
+    Basic
+    Premium
+    Enterprise
+    Platform
+}
+
+// states of an AppUser's KYC status
+enum KycStatus {
+    NOT_STARTED
+    PENDING
+    APPROVED
+    REJECTED
+}

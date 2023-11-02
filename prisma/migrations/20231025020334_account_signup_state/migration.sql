@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "AllowedSignups" ADD COLUMN     "accountState" JSONB NOT NULL DEFAULT '{}',
+ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
