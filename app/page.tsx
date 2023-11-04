@@ -10,7 +10,7 @@ export default async function Home() {
       <div className="flex gap-8">
         <h1 className="text-4xl lg:text-6xl xl:text-8xl">Your</h1>
         <h1
-          className="text-4xl lg:text-6xl"
+          className="text-4xl lg:text-6xl xl:text-8xl"
           style={{
             backgroundImage: "linear-gradient(to right, #00BFFF, #FFD700)",
             WebkitBackgroundClip: "text",
