@@ -20,7 +20,7 @@ export default async function LoginBox(props: LoginBoxProps) {
   console.log(`user: ${JSON.stringify(user, null, 2)}`);
 
   return (
-    <div className="border px-8 pb-8 pt-4 flex flex-col rounded-xl border-2 shadow-xl hover:shadow-2xl bg-card">
+    <div className="border px-8 pb-8 pt-4 flex flex-col rounded-xl border-2 shadow-xl hover:shadow-2xl bg-card w-96">
       <div className="">
         {!user ? (
           props.type === "login" ? (

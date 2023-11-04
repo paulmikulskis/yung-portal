@@ -83,7 +83,7 @@ const SignIn = (props: SignInProps) => {
   }
 
   return (
-    <div className="w-80">
+    <div className="w-full lg:w-80">
       {forgotPassword === -1 ? (
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="p-2 pt-8 flex flex-col gap-2">
